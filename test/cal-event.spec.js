@@ -1,5 +1,6 @@
 var expect = require('chai').expect;
 var path = require('path');
+var timezones = require('../lib/timezones.js')
 
 var TMPDIR = require('os').tmpdir();
 
@@ -83,6 +84,56 @@ describe('ics', function() {
         if (err) throw err;
         expect(filepath).to.equal(expected);
       })
+    })
+  });
+
+});
+
+describe('ics with timezone', function() {
+
+  var sampleEvent = {
+    eventName: 'Welcome Event to ICS',
+    description: 'Meet Down at the index.js',
+    fileName: 'example.ics',
+    dtstart:'Sat Nov 02 2014 13:15:00 GMT-0700 (PDT)',
+    dtend:'Sat Nov 02 2014 15:20:00 GMT-0700 (PDT)',
+    location: 'Fort Worth, Texas',
+    organizer: {
+        name: 'greenpioneersolutions',
+        email: 'info@greenpioneersolutions.com'
+    },
+    attendees:[
+      {
+        name: 'Support Team',
+        email: 'Support@greenpioneersolutions.com',
+        rsvp: true
+      },
+      {
+        name: 'Accounting Team',
+        email: 'Accounting@greenpioneersolutions.com'
+      }
+    ],
+    timezone: 'UTC'
+  };
+
+  describe('getEvent() - timezone', function() {
+
+    it('includes UTC timezone format in ics', function() {
+      expect(ics.getEvent(sampleEvent).split('\r\n').indexOf('TZID:' + timezones[sampleEvent.timezone]['TZID'])).to.be.greaterThan(-1);
+      expect(ics.getEvent(sampleEvent).split('\r\n').indexOf('X-LIC-LOCATION:' + timezones[sampleEvent.timezone]['X-LIC-LOCATION'])).to.be.greaterThan(-1);
+      expect(ics.getEvent(sampleEvent).split('\r\n').indexOf('TZOFFSETFROM:' + timezones[sampleEvent.timezone]['TZOFFSETFROM'])).to.be.greaterThan(-1);
+      expect(ics.getEvent(sampleEvent).split('\r\n').indexOf('TZOFFSETTO:' + timezones[sampleEvent.timezone]['TZOFFSETTO'])).to.be.greaterThan(-1);
+      expect(ics.getEvent(sampleEvent).split('\r\n').indexOf('TZNAME:' + timezones[sampleEvent.timezone]['TZNAME'])).to.be.greaterThan(-1);
+      expect(ics.getEvent(sampleEvent).split('\r\n').indexOf('DTSTART:' + timezones[sampleEvent.timezone]['DTSTART'])).to.be.greaterThan(-1);
+    });
+
+    it('gets correct timezone values', function() {
+      expect(timezones[sampleEvent.timezone]['TZID']).to.be.equal('UTC')
+      expect(timezones[sampleEvent.timezone]['X-LIC-LOCATION']).to.be.equal('UTC')
+      expect(timezones[sampleEvent.timezone]['TZOFFSETFROM']).to.be.equal('+0000')
+      expect(timezones[sampleEvent.timezone]['TZOFFSETTO']).to.be.equal('+0000')
+      expect(timezones[sampleEvent.timezone]['TZNAME']).to.be.equal('UTC')
+      expect(timezones[sampleEvent.timezone]['DTSTART']).to.be.equal('19700101T000000')
     })
   });
 
